@@ -1,31 +1,43 @@
 #!/usr/bin/python3
 """
-Model to make a request to an
-API and retrieve data
+This script fetches todo tasks for a given employee id from the JSON
+Placeholder API and prints the completed tasks and their titles.
+Usage:
+    python3 0-gather_data_from_an_API.py <employee_id>
+
+Args:
+    employee_id (int): The id of the employee whose tasks to fetch.
+
+Example:
+    python3 0-gather_data_from_an_API.py 1
 """
 
-
-import json
 import requests
-from sys import argv
+import sys
 
+if len(sys.argv) != 2:
+    print("Usage: python3 todo_progress.py <employee_id>")
+    sys.exit(1)
 
-if __name__ == "__main__":
-    URL = "https://jsonplaceholder.typicode.com/"
-    user_id = argv[1]
-    res = requests.get(f"{URL}users/{argv[1]}")
-    res = res.json()
-    user_name = res['name']
+employee_id = sys.argv[1]
+url = "https://jsonplaceholder.typicode.com/users/{}/todos".format(employee_id)
 
-    res = requests.get(f"{URL}todos")
-    all_todos = res.json()
-    user_todos = [todo for todo in all_todos if todo['userId'] == int(argv[1])]
-    nr_tasks = len(user_todos)
-    completed_tasks = [completed for completed in user_todos
-                       if completed['completed'] is True]
-    completed_title = [title['title'] for title in completed_tasks]
+response = requests.get(url)
+todos = response.json()
 
-    print(f"Employee {user_name} is done", end="")
-    print(f" with tasks({len(completed_tasks)}/{nr_tasks}):")
-    for title in completed_title:
-        print(f"\t {title}")
+total_tasks = len(todos)
+completed_tasks = [todo for todo in todos if todo["completed"]]
+
+employee_request = requests.get(
+    "https://jsonplaceholder.typicode.com/users/{}".format(employee_id)
+)
+employee_name = employee_request.json()["name"]
+
+print(
+    "Employee {} is done with tasks({}/{}):".format(
+        employee_name, len(completed_tasks), total_tasks
+    )
+)
+
+for task in completed_tasks:
+    print("\t {}".format(task["title"]))
